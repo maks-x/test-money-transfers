@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>main.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">test-money-transfers</a> &gt; <a href="index.source.html" class="el_package">default</a> &gt; <span class="el_source">main.kt</span></div><h1>main.kt</h1><pre class="source lang-java linenums">const val VK_PAY = &quot;VK Pay&quot;
+const val MASTER_CARD = &quot;MasterCard&quot;
+const val MAESTRO = &quot;Maestro&quot;
+const val VISA = &quot;Visa&quot;
+const val MIR = &quot;РњРёСЂ&quot;
+
+const val RUB = 100
+
+const val AMOUNT = 10_000 * RUB
+
+fun main() {
+<span class="nc" id="L12">    moneyTransfer(amount = AMOUNT)</span>
+<span class="nc" id="L13">    moneyTransfer(MASTER_CARD, AMOUNT, 66_000 * RUB)</span>
+<span class="nc" id="L14">    moneyTransfer(MAESTRO, AMOUNT)</span>
+<span class="nc" id="L15">    moneyTransfer(MAESTRO, 299 * RUB)</span>
+<span class="nc" id="L16">    moneyTransfer(MIR, AMOUNT)</span>
+<span class="nc" id="L17">    moneyTransfer(VISA, 500 * RUB)</span>
+<span class="nc" id="L18">    moneyTransfer(&quot;some account&quot;, AMOUNT)</span>
+<span class="nc" id="L19">}</span>
+
+<span class="nc" id="L21">fun moneyTransfer(accountType: String = VK_PAY, amount: Int, monthAmount: Int = 0): Boolean {</span>
+<span class="fc" id="L22">    val fee = calcFee(accountType, amount, monthAmount)</span>
+    val result: Boolean
+<span class="fc" id="L24">    when (fee) {</span>
+<span class="fc bfc" id="L25" title="All 2 branches covered.">        -1 -&gt; {</span>
+<span class="fc" id="L26">            result = false</span>
+<span class="fc" id="L27">            println(&quot;\nAccount type: $accountType\nUnknown account type&quot;)</span>
+        }
+        else -&gt; {
+<span class="fc" id="L30">            result = true</span>
+<span class="fc" id="L31">            println(</span>
+<span class="fc" id="L32">                &quot;&quot;&quot;</span>
+        
+<span class="fc" id="L34">            Account type: $accountType</span>
+<span class="fc" id="L35">            Month amount: ${kopecksToRubles(monthAmount)} RUB.</span>
+<span class="fc" id="L36">            Transfer amount: ${kopecksToRubles(amount)} RUB.</span>
+<span class="fc" id="L37">            The commission will be: ${kopecksToRubles(fee)} RUB.</span>
+<span class="fc" id="L38">            &quot;&quot;&quot;.trimIndent()</span>
+            )
+        }
+    }
+<span class="fc bfc" id="L42" title="All 2 branches covered.">    println(if (result) &quot;PASS&quot; else &quot;FAIL&quot;)</span>
+<span class="fc" id="L43">    return result</span>
+}
+
+<span class="nc" id="L46">fun calcFee(</span>
+<span class="nc" id="L47">    accountType: String = VK_PAY,</span>
+    amount: Int,
+<span class="nc" id="L49">    monthAmount: Int = 0</span>
+): Int {
+<span class="fc bfc" id="L51" title="All 6 branches covered.">    return when (accountType) {</span>
+<span class="fc" id="L52">        VK_PAY -&gt; 0</span>
+<span class="fc" id="L53">        MASTER_CARD -&gt; masterCardFee(amount, monthAmount)</span>
+<span class="fc" id="L54">        MAESTRO -&gt; maestroFee(amount, monthAmount)</span>
+<span class="fc" id="L55">        VISA -&gt; visaFee(amount)</span>
+<span class="fc" id="L56">        MIR -&gt; mirFee(amount)</span>
+<span class="fc" id="L57">        else -&gt; -1</span>
+    }
+}
+
+fun masterCardFee(amount: Int, monthAmount: Int): Int {
+<span class="fc" id="L62">    return when {</span>
+<span class="fc bfc" id="L63" title="All 4 branches covered.">        amount &gt;= 300 * RUB &amp;&amp; (monthAmount + amount) &lt;= 75_000 * RUB -&gt; 0</span>
+<span class="fc" id="L64">        else -&gt; (0.006 * amount + 20 * RUB).toInt()</span>
+    }
+}
+
+fun mirFee(amount: Int): Int {
+<span class="fc" id="L69">    val possibleFee = (0.0075 * amount).toInt()</span>
+<span class="fc" id="L70">    val minFee = 35 * RUB</span>
+<span class="fc bfc" id="L71" title="All 2 branches covered.">    return if (possibleFee &gt; minFee) possibleFee else minFee</span>
+}
+
+//РІРґСЂСѓРі РІ Р±СѓРґСѓС‰РµРј РјС‹ Р·Р°С…РѕС‚РёРј РїРѕРјРµРЅСЏС‚СЊ Р»РѕРіРёРєСѓ РґР»СЏ Maestro Рё Visa
+fun maestroFee(amount: Int, monthAmount: Int): Int {
+<span class="fc" id="L76">    return masterCardFee(amount, monthAmount)</span>
+}
+
+fun visaFee(amount: Int): Int {
+<span class="fc" id="L80">    return mirFee(amount)</span>
+}
+
+fun kopecksToRubles(amount: Int): Double {
+<span class="fc" id="L84">    return amount.toDouble() / RUB</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>
